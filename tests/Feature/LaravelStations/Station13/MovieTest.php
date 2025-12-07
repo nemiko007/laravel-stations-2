@@ -74,6 +74,20 @@ class MovieTest extends TestCase
             $response->assertDontSee($movie->title);
         }
 
+        // ジャンル
+        $genre2 = Genre::create(['name' => 'ジャンル2']);
+        Movie::where('title', 'タイトル8')->update(['genre_id' => $genre2->id]);
+
+        $response = $this->get('/movies?genre_id=' . $genre2->id);
+        $response->assertSeeText('タイトル8');
+        $response->assertDontSee('タイトル7');
+
+        $response = $this->get('/movies?genre_id=' . $genreId);
+        $response->assertDontSee('タイトル8');
+        $response->assertSeeText('タイトル7');
+
+        Movie::where('title', 'タイトル8')->update(['genre_id' => $genreId]); // 元に戻す
+
         // 上映中かどうか
         $response = $this->get('/movies?is_showing=1');
         foreach ($movies as $movie) {

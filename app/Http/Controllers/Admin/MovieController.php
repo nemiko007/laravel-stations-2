@@ -27,6 +27,9 @@ class MovieController extends Controller
     public function store(MovieRequest $request): RedirectResponse
     {
         DB::transaction(function () use ($request) {
+            if (!$request->has('is_showing')) {
+                $request->merge(['is_showing' => false]);
+            }
             $validated = $request->validated();
             $genre = Genre::firstOrCreate(['name' => $validated['genre']]);
             $movieData = array_merge($validated, ['genre_id' => $genre->id]);
@@ -50,6 +53,9 @@ class MovieController extends Controller
     public function update(MovieRequest $request, Movie $movie): RedirectResponse
     {
         DB::transaction(function () use ($request, $movie) {
+            if (!$request->has('is_showing')) {
+                $request->merge(['is_showing' => false]);
+            }
             $validated = $request->validated();
             $genre = Genre::firstOrCreate(['name' => $validated['genre']]);
             $movieData = array_merge($validated, ['genre_id' => $genre->id]);

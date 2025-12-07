@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\MovieController as PublicMovieController;
 use App\Http\Controllers\Admin\MovieController;
+use App\Http\Controllers\SheetController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -20,6 +21,8 @@ Route::get('/', function () {
 });
 
 Route::get('/movies', [PublicMovieController::class, 'index'])->name('movies.index');
+
+Route::get('/sheets', [SheetController::class, 'index'])->name('sheets.index');
 
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::prefix('movies')->name('movies.')->group(function () {

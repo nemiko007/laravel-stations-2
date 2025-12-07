@@ -33,6 +33,10 @@ class MovieController extends Controller
             $query->where('genre_id', $request->input('genre_id'));
         }
 
+        if ($request->filled('genre_id')) {
+            $query->where('genre_id', $request->input('genre_id'));
+        }
+
         $movies = $query->paginate(20);
         $genres = Genre::all();
 
