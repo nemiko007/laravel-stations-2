@@ -57,7 +57,7 @@ class AdminMovieTest extends TestCase
     public function test管理者映画作成画面で映画が作成されるか(): void
     {
         $this->assertMovieCount(0);
-        $response = $this->post('/admin/movies/store', [
+        $response = $this->post(route('admin.movies.store'), [
             'title' => '新しい映画',
             'image_url' => 'https://techbowl.co.jp/_nuxt/img/6074f79.png',
             'published_year' => 2022,
@@ -73,7 +73,7 @@ class AdminMovieTest extends TestCase
     public function testRequiredバリデーションが設定されているか(): void
     {
         $this->assertMovieCount(0);
-        $response = $this->post('/admin/movies/store', [
+        $response = $this->post(route('admin.movies.store'), [
             'title' => '',
             'image_url' => '',
             'published_year' => null,
@@ -90,7 +90,7 @@ class AdminMovieTest extends TestCase
     public function test画像URLバリデーションが設定されているか(): void
     {
         $this->assertMovieCount(0);
-        $response = $this->post('/admin/movies/store', [
+        $response = $this->post(route('admin.movies.store'), [
             'title' => '新しい映画',
             'image_url' => '画像URL',
             'published_year' => 2022,
@@ -114,7 +114,7 @@ class AdminMovieTest extends TestCase
             'is_showing' => (bool)random_int(0, 1),
         ]);
         $this->assertMovieCount(1);
-        $response = $this->post('/admin/movies/store', [
+        $response = $this->post(route('admin.movies.store'), [
             'title' => '最初からある映画',
             'image_url' => '画像URL',
             'published_year' => 2022,

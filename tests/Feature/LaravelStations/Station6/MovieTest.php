@@ -16,14 +16,7 @@ class MovieTest extends TestCase
     #[Group('station6')]
     public function test映画一覧に全ての映画のタイトル、画像URLが表示されているか(): void
     {
-        $count = 12;
-        for ($i = 0; $i < $count; $i++) {
-            Movie::insert([
-                'title' => 'タイトル' . $i,
-                'image_url' => 'https://techbowl.co.jp/_nuxt/img/6074f79.png'
-            ]);
-        }
-        $movies = Movie::all();
+        $movies = Movie::factory(12)->create();
         $response = $this->get('/movies');
         $response->assertStatus(200);
         foreach ($movies as $movie) {
