@@ -55,6 +55,7 @@ class AdminMovieTest extends TestCase
     public function test管理者映画作成画面が表示されているか(): void
     {
         $response = $this->get('/admin/movies/create');
+        $response->assertViewHas('genres');
         $response->assertSeeText('ジャンル');
         $response->assertStatus(200);
     }
@@ -188,7 +189,7 @@ class AdminMovieTest extends TestCase
     public function test管理者映画編集画面が表示される(): void
     {
         $movie = $this->createMovie();
-        $response = $this->get('/admin/movies/' . $movie->id . '/edit');
+        $response = $this->get(route('admin.movies.edit', $movie));
         $response->assertStatus(200);
         $response->assertSee($movie->title);
         $response->assertSee($movie->image_url);
@@ -213,7 +214,7 @@ class AdminMovieTest extends TestCase
             'genre' => $genreName,
         ];
 
-        $response = $this->patch('/admin/movies/' . $movie->id . '/update', $input);
+        $response = $this->patch(route('admin.movies.update', $movie), $input);
         $response->assertStatus(302);
 
         $this->assertDatabaseHas('movies', [
@@ -241,7 +242,7 @@ class AdminMovieTest extends TestCase
             'genre' => Genre::find($movie->genre_id)->name,
         ];
 
-        $response = $this->patch('/admin/movies/' . $movie->id . '/update', $input);
+        $response = $this->patch(route('admin.movies.update', $movie), $input);
         $response->assertStatus(302);
 
         $this->assertDatabaseHas('movies', [
@@ -270,7 +271,7 @@ class AdminMovieTest extends TestCase
         ];
 
         try {
-            $this->patch('/admin/movies/' . $movie->id . '/update', $input);
+            $this->patch(route('admin.movies.update', $movie), $input);
         } catch (\Illuminate\Database\QueryException $e) {
             // Do nothing
         }
@@ -292,7 +293,7 @@ class AdminMovieTest extends TestCase
             'is_showing' => null,
             'genre' => null,
         ];
-        $response = $this->patch('/admin/movies/' . $movie->id . '/update', $data);
+        $response = $this->patch(route('admin.movies.update', $movie), $data);
         $response->assertStatus(302);
         $response->assertInvalid(['title', 'image_url', 'published_year', 'description', 'is_showing', 'genre']);
     }
@@ -309,7 +310,7 @@ class AdminMovieTest extends TestCase
             'description' => "概要\n概要\n",
             'is_showing' => (bool)random_int(0, 1),
         ];
-        $response = $this->patch('/admin/movies/' . $movie->id . '/update', $data);
+        $response = $this->patch(route('admin.movies.update', $movie), $data);
         $response->assertStatus(302);
         $response->assertInvalid(['image_url']);
     }
@@ -338,7 +339,7 @@ class AdminMovieTest extends TestCase
             'is_showing' => (bool)random_int(0, 1),
             'genre' => $genre->name,
         ];
-        $response = $this->patch('/admin/movies/' . $movie->id . '/update', $data);
+        $response = $this->patch(route('admin.movies.update', $movie), $data);
         $response->assertStatus(302);
         $response->assertInvalid(['title']);
     }
@@ -386,14 +387,14 @@ class AdminMovieTest extends TestCase
     {
         $movie = $this->createMovie();
         $this->assertMovieCount(1);
-        $response = $this->delete('/admin/movies/' . $movie->id . '/destroy');
+        $response = $this->delete(route('admin.movies.destroy', $movie));
         $response->assertStatus(302);
         $this->assertMovieCount(0);
     }
 
     #[Test]
     #[Group('station12')]
-    public function test削除対象が存在しない時404が返るか(): void
+    public function test削除対象が存在しない時404が返る(): void
     {
         $response = $this->delete('/admin/movies/1/destroy');
         $response->assertStatus(404);

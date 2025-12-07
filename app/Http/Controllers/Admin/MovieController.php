@@ -14,7 +14,7 @@ class MovieController extends Controller
 {
     public function index(): View
     {
-        $movies = Movie::all();
+        $movies = Movie::with('genre')->latest('id')->get();
         return view('admin.movies.index', ['movies' => $movies]);
     }
 
@@ -39,6 +39,7 @@ class MovieController extends Controller
 
     public function edit(Movie $movie): View
     {
+        $movie->load('genre');
         $genres = Genre::all();
         return view('admin.movies.edit', [
             'movie' => $movie,

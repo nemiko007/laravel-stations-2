@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\LaravelStations\Station9;
 
+use App\Models\Genre;
 use App\Models\Movie;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -17,6 +18,7 @@ class AdminMovieTest extends TestCase
     public function test管理者映画一覧に全ての映画のカラムが表示されているか(): void
     {
         $count = 12;
+        $genreId = Genre::factory()->create()->id;
         for ($i = 0; $i < $count; $i++) {
             Movie::insert([
                 'title' => 'タイトル' . $i,
@@ -24,6 +26,7 @@ class AdminMovieTest extends TestCase
                 'published_year' => 2000 + $i,
                 'description' => '概要' . $i,
                 'is_showing' => (bool)random_int(0, 1),
+                'genre_id' => $genreId,
             ]);
         }
         $movies = Movie::all();
@@ -63,6 +66,7 @@ class AdminMovieTest extends TestCase
             'published_year' => 2022,
             'description' => "概要\n概要\n",
             'is_showing' => (bool)random_int(0, 1),
+            'genre' => 'ジャンル',
         ]);
         $response->assertStatus(302);
         $this->assertMovieCount(1);
@@ -78,10 +82,11 @@ class AdminMovieTest extends TestCase
             'image_url' => '',
             'published_year' => null,
             'description' => '',
-            'is_showing' => null
+            'is_showing' => null,
+            'genre' => '',
         ]);
         $response->assertStatus(302);
-        $response->assertInvalid(['title', 'image_url', 'published_year', 'description', 'is_showing']);
+        $response->assertInvalid(['title', 'image_url', 'published_year', 'description', 'is_showing', 'genre']);
         $this->assertMovieCount(0);
     }
 
@@ -96,6 +101,7 @@ class AdminMovieTest extends TestCase
             'published_year' => 2022,
             'description' => "概要\n概要\n",
             'is_showing' => (bool)random_int(0, 1),
+            'genre' => 'ジャンル',
         ]);
         $response->assertStatus(302);
         $response->assertInvalid(['image_url']);
@@ -106,20 +112,23 @@ class AdminMovieTest extends TestCase
     #[Group('station9')]
     public function test映画タイトルの重複バリデーションが設定されているか(): void
     {
+        $genreId = Genre::factory()->create()->id;
         Movie::insert([
             'title' => '最初からある映画',
             'image_url' => 'https://techbowl.co.jp/_nuxt/img/6074f79.png',
             'published_year' => 2000,
             'description' => '概要',
             'is_showing' => (bool)random_int(0, 1),
+            'genre_id' => $genreId,
         ]);
         $this->assertMovieCount(1);
         $response = $this->post(route('admin.movies.store'), [
             'title' => '最初からある映画',
-            'image_url' => '画像URL',
+            'image_url' => 'https://techbowl.co.jp/_nuxt/img/6074f79.png',
             'published_year' => 2022,
             'description' => "概要\n概要\n",
             'is_showing' => (bool)random_int(0, 1),
+            'genre' => 'ジャンル',
         ]);
         $response->assertStatus(302);
         $response->assertInvalid(['title']);
@@ -139,12 +148,13 @@ class AdminMovieTest extends TestCase
     public function test管理者映画編集画面が表示されているか(): void
     {
         $movie = $this->createMovie();
-        $response = $this->get('/admin/movies/' . $movie->id . '/edit');
+        $response = $this->get(route('admin.movies.edit', $movie));
         $response->assertStatus(200);
         $response->assertSee($movie->title);
         $response->assertSee($movie->image_url);
         $response->assertSee($movie->published_year);
         $response->assertSee($movie->description);
+        $response->assertSee($movie->genre->name);
         $response->assertSee('is_showing'); // Checkboxの存在を確認する代わりにプロパティ名がHTMLに含まれているかどうかだけチェックする
     }
 
@@ -158,9 +168,10 @@ class AdminMovieTest extends TestCase
             'image_url' => 'https://techbowl.co.jp/_nuxt/img/6074f78.png',
             'published_year' => 2022,
             'description' => '更新された概要',
-            'is_showing' => true
+            'is_showing' => true,
+            'genre' => '更新されたジャンル',
         ];
-        $response = $this->patch('/admin/movies/' . $movie->id . '/update', $data);
+        $response = $this->patch(route('admin.movies.update', $movie), $data);
         $response->assertStatus(302);
         $updated = Movie::find($movie->id);
         $this->assertEquals($updated->title, $data['title']);
@@ -168,6 +179,7 @@ class AdminMovieTest extends TestCase
         $this->assertEquals($updated->published_year, $data['published_year']);
         $this->assertEquals($updated->description, $data['description']);
         $this->assertEquals($updated->is_showing, $data['is_showing']);
+        $this->assertEquals($updated->genre->name, $data['genre']);
     }
 
     #[Test]
@@ -180,11 +192,12 @@ class AdminMovieTest extends TestCase
             'image_url' => '',
             'published_year' => null,
             'description' => '',
-            'is_showing' => null
+            'is_showing' => null,
+            'genre' => '',
         ];
-        $response = $this->patch('/admin/movies/' . $movie->id . '/update', $data);
+        $response = $this->patch(route('admin.movies.update', $movie), $data);
         $response->assertStatus(302);
-        $response->assertInvalid(['title', 'image_url', 'published_year', 'description', 'is_showing']);
+        $response->assertInvalid(['title', 'image_url', 'published_year', 'description', 'is_showing', 'genre']);
     }
 
     #[Test]
@@ -198,8 +211,9 @@ class AdminMovieTest extends TestCase
             'published_year' => 2022,
             'description' => "概要\n概要\n",
             'is_showing' => (bool)random_int(0, 1),
+            'genre' => 'ジャンル',
         ];
-        $response = $this->patch('/admin/movies/' . $movie->id . '/update', $data);
+        $response = $this->patch(route('admin.movies.update', $movie), $data);
         $response->assertStatus(302);
         $response->assertInvalid(['image_url']);
     }
@@ -208,12 +222,14 @@ class AdminMovieTest extends TestCase
     #[Group('station9')]
     public function test更新時映画タイトルの重複バリデーションが設定されているか(): void
     {
+        $genreId = Genre::factory()->create()->id;
         Movie::insert([
             'title' => '既存の映画',
             'image_url' => 'https://techbowl.co.jp/_nuxt/img/6074f79.png',
             'published_year' => 2000,
             'description' => '概要',
             'is_showing' => (bool)random_int(0, 1),
+            'genre_id' => $genreId,
         ]);
         $movie = $this->createMovie();
         $data = [
@@ -222,8 +238,9 @@ class AdminMovieTest extends TestCase
             'published_year' => 2022,
             'description' => "概要\n概要\n",
             'is_showing' => (bool)random_int(0, 1),
+            'genre' => 'ジャンル',
         ];
-        $response = $this->patch('/admin/movies/' . $movie->id . '/update', $data);
+        $response = $this->patch(route('admin.movies.update', $movie), $data);
         $response->assertStatus(302);
         $response->assertInvalid(['title']);
     }
@@ -232,12 +249,14 @@ class AdminMovieTest extends TestCase
     #[Group('station9')]
     public function testテーブルにMovieTitleのユニークキーが入っているか(): void
     {
+        $genreId = Genre::factory()->create()->id;
         Movie::insert([
             'title' => '最初からある映画',
             'image_url' => 'https://techbowl.co.jp/_nuxt/img/6074f79.png',
             'published_year' => 2000,
             'description' => '概要',
             'is_showing' => (bool)random_int(0, 1),
+            'genre_id' => $genreId,
         ]);
 
         try {
@@ -247,6 +266,7 @@ class AdminMovieTest extends TestCase
                 'published_year' => 2000,
                 'description' => '概要',
                 'is_showing' => (bool)random_int(0, 1),
+                'genre_id' => $genreId,
             ]);
             $this->fail();
         } catch (\Exception $e) {
@@ -258,13 +278,13 @@ class AdminMovieTest extends TestCase
     #[Group('station9')]
     private function createMovie(): Movie
     {
-        $movieId = Movie::insertGetId([
+        return Movie::create([
             'title' => '最初からある映画',
             'image_url' => 'https://techbowl.co.jp/_nuxt/img/6074f79.png',
             'published_year' => 2000,
             'description' => '概要',
-            'is_showing' => false
+            'is_showing' => false,
+            'genre_id' => Genre::factory()->create()->id,
         ]);
-        return Movie::find($movieId);
     }
 }

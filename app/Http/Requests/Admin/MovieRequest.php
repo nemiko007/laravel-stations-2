@@ -25,7 +25,7 @@ class MovieRequest extends FormRequest
     public function rules()
     {
         return [
-            'title' => ['required', 'string', Rule::unique('movies')->ignore($this->movie)],
+            'title' => ['required', 'string', 'max:255', Rule::unique('movies')->ignore($this->movie?->id)],
             'image_url' => 'required|url',
             'published_year' => 'required|integer',
             'is_showing' => 'required|boolean',
