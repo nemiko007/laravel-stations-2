@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Practice;
 
 class PracticeController extends Controller
 {
@@ -20,5 +21,11 @@ class PracticeController extends Controller
     public function sample3()
     {
         return view('practice3', ['testParam' => 'test']);
+    }
+
+    public function getPractice()
+    {
+        $practices = Practice::all();
+        return view('getPractice', ['practices' => $practices]);
     }
 }
