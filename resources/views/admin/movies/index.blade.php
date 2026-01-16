@@ -7,6 +7,11 @@
     <title>Admin Movie List</title>
 </head>
 <body>
+    @if (session('flash_message'))
+        <div class="flash_message">
+            {{ session('flash_message') }}
+        </div>
+    @endif
     <table border="1">
         <thead>
             <tr>
@@ -18,6 +23,7 @@
                 <th>概要</th>
                 <th>登録日時</th>
                 <th>更新日時</th>
+                <th>操作</th>
             </tr>
         </thead>
         <tbody>
@@ -31,6 +37,14 @@
                     <td>{{ $movie->description }}</td>
                     <td>{{ $movie->created_at }}</td>
                     <td>{{ $movie->updated_at }}</td>
+                    <td>
+                        <a href="/admin/movies/{{ $movie->id }}/edit"><button>編集</button></a>
+                        <form action="/admin/movies/{{ $movie->id }}/destroy" method="POST">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" onclick="return confirm('本当に削除しますか？')">削除</button>
+                        </form>
+                    </td>
                 </tr>
             @endforeach
         </tbody>
